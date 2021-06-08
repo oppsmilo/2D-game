@@ -1,0 +1,82 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
+public class playerControl : MonoBehaviour
+{
+    public float speed;
+    public Rigidbody2D rigid2D;
+    public float jump;
+    public static float hp;
+    public float full_hp;
+    public float full_mp;
+    public static float mp;
+    bool isjumping;
+    public GameObject bulletPrefab;
+    public Image hp_bar,mp_bar;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        print("1");
+        full_hp = 100;
+        hp = full_hp;
+        full_mp = 100;
+        mp = full_mp;
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Instantiate(bulletPrefab,this.gameObject.transform.position, Quaternion.identity);
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow) && isjumping == false)
+        {
+            rigid2D.AddForce(new Vector2(0, jump), ForceMode2D.Impulse);
+            print("is operating");
+            isjumping = true;
+        }
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            this.gameObject.transform.position -= new Vector3(speed, 0, 0);
+        }
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
+            this.gameObject.transform.position += new Vector3(speed, 0, 0);
+        }
+        float HP_percent = hp / full_hp;
+        hp_bar.transform.localScale = new Vector3(hp / full_hp, hp_bar.transform.localScale.y, hp_bar.transform.localScale.z);
+        mp_bar.transform.localScale = new Vector3(mp / full_hp, mp_bar.transform.localScale.y, mp_bar.transform.localScale.z);
+    }
+    void OnCollisionEnter2D(Collision2D coll)
+    {
+        if (coll.gameObject.tag == "monster")
+        {
+            hp -= 5;
+            print("player"+  hp);
+            if (this.gameObject.transform.position.x > GameObject.Find("monster").transform.position.x)
+            {
+                rigid2D.AddForce(new Vector2(5.5f, 5), ForceMode2D.Impulse);
+            }
+            else
+                rigid2D.AddForce(new Vector2(-5.5f, 5), ForceMode2D.Impulse);
+        }
+        if (coll.gameObject.tag == "ground")
+        {
+            isjumping = false;
+            print(isjumping);
+        }
+    }
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.transform.tag=="transport")
+        {
+            other.gameObject.transform.GetComponent<transport>().SceneChange();
+        }
+    }
+}
