@@ -1,0 +1,51 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class monster : MonoBehaviour
+{
+    // Start is called before the first frame update
+    public GameObject hp_bar;
+    public int hp;
+    public Rigidbody2D rigid2D;
+    public int full_hp;
+
+
+    void Start()
+    {
+         full_hp =70;
+        hp = full_hp;
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (hp <= 0)
+        {
+            Destroy(this.gameObject);
+        }
+        float hp_percent=((float)hp /(float)full_hp);
+        hp_bar.transform.localScale = new Vector3(hp_percent,hp_bar.transform.localScale.y,hp_bar.transform.localScale.z);
+    }
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "bullet")
+        {
+            hp -= 5;
+            print("monster" + hp);
+            if (other.gameObject.transform.position.x > this.gameObject.transform.position.x)
+            {
+                rigid2D.AddForce(new Vector2(0, 0f), ForceMode2D.Impulse);
+                print("addForce");
+            }
+            else
+            {
+                rigid2D.AddForce(new Vector2(0, 0), ForceMode2D.Impulse);
+            }
+            Destroy(other.gameObject);
+        }
+        else
+            print("not bullet");
+    }
+}
