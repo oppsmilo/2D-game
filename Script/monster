@@ -9,13 +9,29 @@ public class monster : MonoBehaviour
     public int hp;
     public Rigidbody2D rigid2D;
     public int full_hp;
+    public enum Status { idle, walk };
+    public Status status;
+    public enum Face{ Right, Left };
+    public Face face;
+    public int speed;
+    public Transform myTransform;
+    
 
 
     void Start()
     {
          full_hp =70;
         hp = full_hp;
-
+        status = Status.walk;
+        if(this.gameObject.transform.GetComponent<SpriteRenderer>().flipX)
+        {
+            face = Face.Right;
+        }
+        else
+        {
+            face = Face.Left;
+        }
+        myTransform = this.transform;
     }
 
     // Update is called once per frame
@@ -27,6 +43,24 @@ public class monster : MonoBehaviour
         }
         float hp_percent=((float)hp /(float)full_hp);
         hp_bar.transform.localScale = new Vector3(hp_percent,hp_bar.transform.localScale.y,hp_bar.transform.localScale.z);
+        //action
+        float deltaTime = Time.deltaTime;
+        switch(status)
+        {
+            case Status.idle:
+                break;
+            case Status.walk:
+                switch(face)
+                    {
+                      case Face.Right:
+                     myTransform.position += new Vector3(speed*deltaTime, 0, 0);
+                           break;
+                      case Face.Left:
+                     myTransform.position -= new Vector3(speed * deltaTime, 0, 0);
+                           break;
+                     }
+                           break;
+        }
     }
     void OnTriggerEnter2D(Collider2D other)
     {
