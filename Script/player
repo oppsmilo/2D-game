@@ -16,10 +16,12 @@ public class playerControl : MonoBehaviour
     bool isjumping;
     public GameObject bulletPrefab;
     public Image hp_bar,mp_bar;
+    public static bool isFacingLeft;
 
     // Start is called before the first frame update
     void Start()
     {
+        isFacingLeft = true;
         print("1");
         full_hp = 100;
         hp = full_hp;
@@ -43,11 +45,31 @@ public class playerControl : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            this.gameObject.transform.position -= new Vector3(speed, 0, 0);
+            if (isFacingLeft == false)
+            {
+                this.transform.Rotate(0, -180, 0);
+                this.gameObject.transform.position -= new Vector3(speed, 0, 0);
+                isFacingLeft = true;
+            }
+            else
+            {
+                this.gameObject.transform.position -= new Vector3(speed, 0, 0);
+                isFacingLeft = true;
+            }
         }
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            this.gameObject.transform.position += new Vector3(speed, 0, 0);
+            if (isFacingLeft == true)
+            {
+                this.transform.Rotate(0, -180, 0);
+                this.gameObject.transform.position += new Vector3(speed, 0, 0);
+                isFacingLeft = false;
+            }
+            else
+            {
+                this.gameObject.transform.position += new Vector3(speed, 0, 0);
+                isFacingLeft = false;
+            }
         }
         float HP_percent = hp / full_hp;
         hp_bar.transform.localScale = new Vector3(hp / full_hp, hp_bar.transform.localScale.y, hp_bar.transform.localScale.z);
