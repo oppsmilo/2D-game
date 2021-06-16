@@ -1,0 +1,138 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+public class boss : MonoBehaviour
+{
+    // Start is called before the first frame update
+    public GameObject hp_bar;
+    public int hp;
+    public int full_hp;
+    public enum Status { idle, walk, jump };
+    public Status status;
+    public enum Face { Right, Left };
+    public Face face;
+    private Transform myTransform;
+    int rand;
+    float distant;
+    public float speed;
+    public Transform playerTransform;
+    bool isjumping;
+    public float jump;
+    private SpriteRenderer spr;
+    void Start()
+    {
+        isjumping = false;
+        status = Status.idle;
+        spr = this.transform.GetComponent<SpriteRenderer>();
+        full_hp = 500;
+        hp = full_hp;
+
+        //flipX代表面向方向相反
+        if (spr.flipX)
+        {
+
+            face = Face.Right;
+        }
+        else
+        {
+            face = Face.Left;
+        }
+        myTransform = this.transform;
+        if (GameObject.Find("player") != null)
+        {
+            playerTransform = GameObject.Find("player").transform;
+        }
+        else
+            print("null");
+    }
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        //怪物死亡自動消除
+        if (hp <= 0)
+        {
+            Destroy(this.gameObject);
+            SceneManager.LoadScene("title");
+
+        }
+        //怪物的hp_bar
+        float hp_percent = ((float)hp / (float)full_hp);
+        hp_bar.transform.localScale = new Vector3(hp_percent, hp_bar.transform.localScale.y, hp_bar.transform.localScale.z);
+
+
+        //怪物走路和面向
+        float deltaTime = Time.deltaTime;
+        switch (status)
+        {
+            case Status.idle:
+                if (playerTransform)
+                {
+                    if (Mathf.Abs(myTransform.position.x - playerTransform.position.x) < 12)
+                    {
+                        status = Status.walk;
+                    }
+                }
+                break;
+            case Status.walk:
+                if (playerTransform)
+                {
+                    if (myTransform.position.x >= playerTransform.position.x)
+                    {
+                        spr.flipX = false;
+                        face = Face.Left;
+                    }
+                    else
+                    {
+                        spr.flipX = true;
+                        face = Face.Right;
+                    }
+                    if (Mathf.Abs(myTransform.position.x - playerTransform.position.x) >= 2)
+                    {
+                        status = Status.idle;
+                    }
+                    if (Mathf.Abs(myTransform.position.y - playerTransform.position.y) >= 3 && isjumping == false)
+                    {
+                        print("monster is jumping");
+                        myTransform.position += new Vector3(0, jump * deltaTime, 0);
+                        isjumping = true;
+                    }
+                }
+                switch (face)
+                {
+                    case Face.Right:
+                        myTransform.position += new Vector3(speed * deltaTime, 0, 0);
+                        break;
+                    case Face.Left:
+                        myTransform.position -= new Vector3(speed * deltaTime, 0, 0);
+                        break;
+                }
+                break;
+        }
+        //與player距離的互動
+
+    }
+    //碰到子彈時
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "bullet")
+        {
+            hp -= 30;
+            Destroy(other.gameObject);
+        }
+        if (other.gameObject.tag == "swordEffect")
+        {
+            hp -= 15;
+        }
+    }
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.gameObject.tag == "ground")
+        {
+            isjumping = false;
+            print("moster on the floor");
+        }
+    }
+}
