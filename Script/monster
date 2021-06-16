@@ -9,64 +9,140 @@ public class monster : MonoBehaviour
     public int hp;
     public Rigidbody2D rigid2D;
     public int full_hp;
-    public enum Status { idle, walk };
+    public enum Status { idle, walk,jump };
     public Status status;
-    public enum Face{ Right, Left };
-    public Face face;
-    public int speed;
-    public Transform myTransform;
-    
+    public enum Face { Right, Left };
+    public   Face face;
+    private Transform myTransform;
+    public GameObject Monster;
+    public int monsterNumber;
+    int rand;
+    float distant;
+    public float speed;
+    public Transform playerTransform;
+    bool isjumping;
+    public float jump;
 
+    private SpriteRenderer spr;
 
     void Start()
     {
-         full_hp =70;
+        isjumping = false;
+        status = Status.idle;
+        spr = this.transform.GetComponent<SpriteRenderer>();
+        full_hp = 70;
         hp = full_hp;
-        status = Status.walk;
-        if(this.gameObject.transform.GetComponent<SpriteRenderer>().flipX)
+        monsterNumber = 0;
+        //怪物樹小於三自動生成在隨機位置
+        while (monsterNumber < 0)
         {
+            //還沒寫rand不能相同
+            rand = Random.Range(4, 14);
+            Instantiate(Monster, new Vector2(rand, 2), Quaternion.identity);
+            monsterNumber++;
+        }
+
+        //flipX代表面向方向相反
+        if (spr.flipX)
+         {
+           
             face = Face.Right;
+         }
+         else
+         {
+            face = Face.Left;
+         }
+        myTransform = this.transform;
+        if (GameObject.Find("player") != null)
+        {
+            playerTransform = GameObject.Find("player").transform;
         }
         else
-        {
-            face = Face.Left;
-        }
-        myTransform = this.transform;
+            print("null");
     }
+
+
+
+
+
 
     // Update is called once per frame
     void Update()
     {
+        //怪物死亡自動消除
         if (hp <= 0)
         {
             Destroy(this.gameObject);
         }
-        float hp_percent=((float)hp /(float)full_hp);
-        hp_bar.transform.localScale = new Vector3(hp_percent,hp_bar.transform.localScale.y,hp_bar.transform.localScale.z);
-        //action
+        //怪物的hp_bar
+        float hp_percent = ((float)hp / (float)full_hp);
+        hp_bar.transform.localScale = new Vector3(hp_percent, hp_bar.transform.localScale.y, hp_bar.transform.localScale.z);
+
+
+        //怪物走路和面向
         float deltaTime = Time.deltaTime;
-        switch(status)
+        switch (status)
         {
             case Status.idle:
+                if(playerTransform)
+                {
+                    if(Mathf.Abs(myTransform.position.x-playerTransform.position.x)<3)
+                    {
+                        status = Status.walk;
+                    }
+                }
                 break;
             case Status.walk:
-                switch(face)
+                if(playerTransform)
                     {
-                      case Face.Right:
-                     myTransform.position += new Vector3(speed*deltaTime, 0, 0);
-                           break;
-                      case Face.Left:
-                     myTransform.position -= new Vector3(speed * deltaTime, 0, 0);
-                           break;
-                     }
-                           break;
+                        if (myTransform.position.x >= playerTransform.position.x)
+                        {
+                        spr.flipX = false;
+                            face = Face.Left;
+                        }
+                        else
+                        {
+                        spr.flipX = true;
+                        face = Face.Right;
+                        }
+                        if(Mathf.Abs(myTransform.position.x - playerTransform.position.x) >=7)
+                        {
+                        status = Status.idle;
+                        }
+                        if(Mathf.Abs(myTransform.position.y-playerTransform.position.y)>= 0.5 && isjumping == false)
+                         {
+                        print("monster is jumping");
+                            rigid2D.AddForce(new Vector2(0, jump), ForceMode2D.Impulse);
+                          isjumping = true;
+                         }
+                    }
+                switch (face)
+                {
+                    case Face.Right:
+                        myTransform.position += new Vector3(speed * deltaTime, 0, 0);
+                        break;
+                    case Face.Left:
+                        myTransform.position -= new Vector3(speed * deltaTime, 0, 0);
+                        break;
+                }
+                break;
         }
+        //小魚等於3時自動生成怪獸
+         if(monsterNumber <= 3)
+        {
+            rand = Random.Range(4, 19);
+            Instantiate(Monster, new Vector2(rand, 2), Quaternion.identity);
+            monsterNumber++;
+        }
+        //與player距離的互動
+
     }
+    //碰到子彈時
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.tag == "bullet")
         {
-            hp -= 5;
+            hp -= 30;
             print("monster" + hp);
             if (other.gameObject.transform.position.x > this.gameObject.transform.position.x)
             {
@@ -79,7 +155,27 @@ public class monster : MonoBehaviour
             }
             Destroy(other.gameObject);
         }
-        else
-            print("not bullet");
+        if(other.gameObject.tag=="swordEffect")
+        {
+            hp -= 15;
+            if (other.gameObject.transform.position.x > this.gameObject.transform.position.x)
+            {
+                rigid2D.AddForce(new Vector2(500, 500), ForceMode2D.Impulse);
+                print("addForce");
+            }
+            else
+            {
+                rigid2D.AddForce(new Vector2(500, 500), ForceMode2D.Impulse);
+            }
+
+        }
+    }
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if(col.gameObject.tag=="ground")
+        {
+            isjumping = false;
+            print("moster on the floor");
+        }
     }
 }
