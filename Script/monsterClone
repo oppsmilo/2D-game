@@ -1,0 +1,164 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class monsterdontmake : MonoBehaviour
+{
+    // Start is called before the first frame update
+    public GameObject hp_bar;
+    public int hp;
+    public Rigidbody2D rigid2D;
+    public int full_hp;
+    public enum Status { idle, walk, jump };
+    public Status status;
+    public enum Face { Right, Left };
+    public Face face;
+    private Transform myTransform;
+    public int monsterNumber;
+    int rand;
+    float distant;
+    public float speed;
+    public Transform playerTransform;
+    bool isjumping;
+    public float jump;
+
+    private SpriteRenderer spr;
+
+    void Start()
+    {
+        isjumping = false;
+        status = Status.idle;
+        spr = this.transform.GetComponent<SpriteRenderer>();
+        full_hp = 70;
+        hp = full_hp;
+
+        //flipX代表面向方向相反
+        if (spr.flipX)
+        {
+
+            face = Face.Right;
+        }
+        else
+        {
+            face = Face.Left;
+        }
+        myTransform = this.transform;
+        if (GameObject.Find("player") != null)
+        {
+            playerTransform = GameObject.Find("player").transform;
+        }
+        else
+            print("null");
+    }
+
+
+
+
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        //怪物死亡自動消除
+        if (hp <= 0)
+        {
+            Destroy(this.gameObject);
+        }
+        //怪物的hp_bar
+        float hp_percent = ((float)hp / (float)full_hp);
+        hp_bar.transform.localScale = new Vector3(hp_percent, hp_bar.transform.localScale.y, hp_bar.transform.localScale.z);
+
+
+        //怪物走路和面向
+        float deltaTime = Time.deltaTime;
+        switch (status)
+        {
+            case Status.idle:
+                if (playerTransform)
+                {
+                    if (Mathf.Abs(myTransform.position.x - playerTransform.position.x) < 3)
+                    {
+                        status = Status.walk;
+                    }
+                }
+                break;
+            case Status.walk:
+                if (playerTransform)
+                {
+                    if (myTransform.position.x >= playerTransform.position.x)
+                    {
+                        spr.flipX = false;
+                        face = Face.Left;
+                    }
+                    else
+                    {
+                        spr.flipX = true;
+                        face = Face.Right;
+                    }
+                    if (Mathf.Abs(myTransform.position.x - playerTransform.position.x) >= 7)
+                    {
+                        status = Status.idle;
+                    }
+                    if (Mathf.Abs(myTransform.position.y - playerTransform.position.y) >= 0.5 && isjumping == false)
+                    {
+                        print("monster is jumping");
+                        rigid2D.AddForce(new Vector2(0, jump), ForceMode2D.Impulse);
+                        isjumping = true;
+                    }
+                }
+                switch (face)
+                {
+                    case Face.Right:
+                        myTransform.position += new Vector3(speed * deltaTime, 0, 0);
+                        break;
+                    case Face.Left:
+                        myTransform.position -= new Vector3(speed * deltaTime, 0, 0);
+                        break;
+                }
+                break;
+        }
+        //與player距離的互動
+
+    }
+    //碰到子彈時
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "bullet")
+        {
+            hp -= 15;
+            print("monster" + hp);
+            if (other.gameObject.transform.position.x > this.gameObject.transform.position.x)
+            {
+                rigid2D.AddForce(new Vector2(0, 0f), ForceMode2D.Impulse);
+                print("addForce");
+            }
+            else
+            {
+                rigid2D.AddForce(new Vector2(0, 0), ForceMode2D.Impulse);
+            }
+            Destroy(other.gameObject);
+        }
+        if (other.gameObject.tag == "swordEffect")
+        {
+            hp -= 15;
+            if (other.gameObject.transform.position.x > this.gameObject.transform.position.x)
+            {
+                rigid2D.AddForce(new Vector2(5500, 2000), ForceMode2D.Impulse);
+                print("addForce");
+            }
+            else
+            {
+                rigid2D.AddForce(new Vector2(5500, 2000), ForceMode2D.Impulse);
+            }
+
+        }
+    }
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.gameObject.tag == "ground")
+        {
+            isjumping = false;
+            print("moster on the floor");
+        }
+    }
+}
