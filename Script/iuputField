@@ -1,0 +1,35 @@
+using UnityEngine;
+using System.Collections;
+using UnityEngine.UI;
+using System.Xml.Serialization;
+using System.IO;
+using System;
+using System.Text;
+
+public class inputtest : MonoBehaviour
+{
+    public string textValue;
+    [SerializeField]
+    Text ui_text;
+
+    public void Start()
+    {
+
+    }
+    void Update()
+    {
+        
+         textValue = this.gameObject.GetComponent<InputField>().text;
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            PlayerPrefs.SetString("jsondata", JsonUtility.ToJson(textValue));
+            ui_text.text = "儲存完成";
+        }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            textValue = JsonUtility.FromJson<String>(PlayerPrefs.GetString("jsondata"));
+
+        }
+    }
+ 
+}
